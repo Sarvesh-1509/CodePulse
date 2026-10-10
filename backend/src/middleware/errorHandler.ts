@@ -1,3 +1,7 @@
+/**
+ * CodePulse Global Error Handler Middleware
+ * Normalizes errors into consistent JSON responses and prevents info leakage.
+ */
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
 import { HttpError } from "../utils/httpError";

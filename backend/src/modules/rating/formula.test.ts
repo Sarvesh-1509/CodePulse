@@ -1,3 +1,7 @@
+/**
+ * CodePulse Rating Formula Unit Tests
+ * Verifies mathematical bounds, scaling curves, and SHA-256 idempotency.
+ */
 import { describe, expect, it } from "vitest";
 import { calculateCpr, FORMULA_VERSION, type FormulaInputs } from "./formula";
 

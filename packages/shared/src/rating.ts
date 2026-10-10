@@ -1,4 +1,8 @@
 /**
+ * CodePulse Shared Rating Types & DTOs
+ * Cross-workspace contracts for CPR scores and component breakdowns.
+ */
+/**
  * Shared CodePulse Rating (CPR) contracts (Module 10).
  *
  * CPR is a CodePulse-defined metric on a 0-1000 scale. It is NOT an

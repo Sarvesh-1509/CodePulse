@@ -1,3 +1,7 @@
+/**
+ * CodePulse Rate Limiter Test Suite
+ * Unit and integration verification for auth endpoint rate limiting.
+ */
 import { afterAll, describe, expect, it } from "vitest";
 import express, { type RequestHandler } from "express";
 import request from "supertest";

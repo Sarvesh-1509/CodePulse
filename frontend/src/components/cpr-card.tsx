@@ -1,3 +1,7 @@
+/**
+ * CodePulse CPR Card Component
+ * Interactive visual card for displaying CPR score and platform breakdowns.
+ */
 "use client";
 
 import type { CprDto } from "@codepulse/shared";

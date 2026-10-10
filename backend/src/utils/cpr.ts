@@ -1,4 +1,8 @@
 /**
+ * CodePulse CPR Utility Constants
+ * Defines active CPR formula versioning and platform constants.
+ */
+/**
  * CodePulse Rating formula version (single source of truth).
  *
  * Lives in utils (not in any feature module) so both the rating module and

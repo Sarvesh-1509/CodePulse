@@ -1,3 +1,7 @@
+/**
+ * CodePulse Rating Service
+ * Manages rating snapshots, SHA-256 hash idempotency, and aggregation.
+ */
 import type { PlatformId } from "@codepulse/shared";
 import { assertDatabaseConfigured, prisma } from "../../db/prisma";
 import { computeStreaks, toDayKey } from "../../utils/streaks";

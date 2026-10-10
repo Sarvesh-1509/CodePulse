@@ -1,3 +1,7 @@
+/**
+ * CodePulse Rating Routes
+ * Exposes endpoints for fetching user CPR ratings and snapshot histories.
+ */
 import { Router, type Request, type Response } from "express";
 import { requireAuth } from "../auth/middleware";
 import { ratingHistoryQuerySchema } from "./schemas";

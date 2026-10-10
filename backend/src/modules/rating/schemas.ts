@@ -1,3 +1,7 @@
+/**
+ * CodePulse Rating Validation Schemas
+ * Zod validation schemas for rating query parameters and payloads.
+ */
 import { z } from "zod";
 
 export const ratingHistoryQuerySchema = z

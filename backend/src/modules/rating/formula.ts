@@ -1,3 +1,7 @@
+/**
+ * CodePulse Rating (CPR v1.0.0) Formula Engine
+ * Unified competitive programming rating calculation across platforms.
+ */
 import { createHash } from "node:crypto";
 import type { PlatformId } from "@codepulse/shared";
 

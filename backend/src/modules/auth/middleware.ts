@@ -1,3 +1,7 @@
+/**
+ * CodePulse Authentication Middleware
+ * Extracts session cookies and attaches authenticated user identity to Request.
+ */
 import type { NextFunction, Request, Response } from "express";
 import { getUserById } from "./service";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "./tokens";

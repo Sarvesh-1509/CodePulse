@@ -1,3 +1,7 @@
+/**
+ * CodePulse Security Middleware: CSRF Protection Layer
+ * Enforces same-origin validation for state-changing HTTP requests.
+ */
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
 

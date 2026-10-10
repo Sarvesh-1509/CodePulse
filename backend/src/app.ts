@@ -1,3 +1,7 @@
+/**
+ * CodePulse Express Application Factory
+ * Configures security middleware pipeline, rate limiting, and API routing.
+ */
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";

@@ -1,3 +1,4 @@
+<!-- CodePulse Rating (CPR v1.0.0) Specification & Mathematical Formulation -->
 # CodePulse Rating (CPR) — Formula v1.0.0
 
 CPR is a **CodePulse-defined** summary metric on a **0–1000 scale**. It is

@@ -1,3 +1,7 @@
+/**
+ * CodePulse Rate Limiter Engine
+ * In-memory sliding window rate limiters for authentication endpoints.
+ */
 import type { RequestHandler } from "express";
 import { rateLimit } from "express-rate-limit";
 
