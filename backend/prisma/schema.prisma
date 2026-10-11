@@ -1,0 +1,272 @@
+// CodePulse Prisma schema (Modules 1-5).
+//
+// Conventions (Prisma 6):
+// - `npx prisma validate` checks this file.
+// - `npx prisma migrate dev` creates/applies development migrations.
+// - `npx prisma migrate deploy` applies migrations in production.
+// - UUID primary keys everywhere; timestamps via @default(now()) / @updatedAt.
+// - Deletion is cascading from parents to children so no orphaned rows remain.
+//
+// Conventions (Prisma 6):
+// - `npx prisma validate` checks this file.
+// - `npx prisma migrate dev` creates/applies development migrations.
+// - `npx prisma migrate deploy` applies migrations in production.
+// - UUID primary keys everywhere; timestamps via @default(now()) / @updatedAt.
+// - Deletion is cascading from parents to children so no orphaned rows remain.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Platform {
+  CODEFORCES
+  LEETCODE
+  CODECHEF
+  GEEKSFORGEEKS
+  HACKERRANK
+}
+
+enum ConnectionStatus {
+  PENDING
+  CONNECTED
+  SYNCING
+  DISCONNECTED
+  ERROR
+}
+
+enum ActivityType {
+  PROBLEM_SOLVED
+  CONTEST_PARTICIPATION
+  // Day-level submission activity without problem attribution (LeetCode
+  // submission calendar). Counts toward active days/streaks/trends, never
+  // toward solved-problem counts (those require PROBLEM_SOLVED plus a
+  // non-null problem identifier).
+  SUBMISSION
+}
+
+enum RoomRole {
+  OWNER
+  MEMBER
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  displayName  String?
+  avatarUrl    String?
+  timezone     String   @default("UTC")
+  // Global leaderboard visibility. Privacy-conscious default: hidden
+  // until the user explicitly opts in via PATCH /api/users/me.
+  showOnLeaderboard Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  linkedAccounts  LinkedAccount[]
+  activityEvents  ActivityEvent[]
+  dailyActivities DailyActivity[]
+  ratingSnapshots RatingSnapshot[]
+  roomsOwned      Room[]          @relation("RoomOwner")
+  roomMemberships RoomMember[]
+  invitationsCreated RoomInvitation[] @relation("InvitationCreator")
+  invitationsReceived RoomInvitation[] @relation("InvitationRecipient")
+
+  @@index([email])
+  @@index([username])
+}
+
+model LinkedAccount {
+  id               String           @id @default(uuid()) @db.Uuid
+  userId           String           @db.Uuid
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform         Platform
+  platformUsername String
+  connectionStatus ConnectionStatus @default(PENDING)
+  lastSyncedAt     DateTime?
+  lastSyncError    String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  stats          PlatformStats?
+  activityEvents ActivityEvent[]
+  dailyActivities DailyActivity[]
+  contestResults ContestResult[]
+
+  @@unique([userId, platform])
+  @@index([userId])
+  @@index([platform])
+}
+
+model PlatformStats {
+  id               String        @id @default(uuid()) @db.Uuid
+  linkedAccountId  String        @unique @db.Uuid
+  linkedAccount    LinkedAccount @relation(fields: [linkedAccountId], references: [id], onDelete: Cascade)
+  // Nullable by design: an unavailable platform metric stays NULL, never 0.
+  totalSolved      Int?
+  contestRating    Decimal?      @db.Decimal(10, 2)
+  contestsAttended Int?
+  currentStreak    Int?
+  longestStreak    Int?
+  additionalStats  Json?
+  fetchedAt        DateTime      @default(now())
+}
+
+model ActivityEvent {
+  id                 String        @id @default(uuid()) @db.Uuid
+  userId             String        @db.Uuid
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkedAccountId    String        @db.Uuid
+  linkedAccount      LinkedAccount @relation(fields: [linkedAccountId], references: [id], onDelete: Cascade)
+  platform           Platform
+  externalActivityId String?
+  activityType       ActivityType
+  problemIdentifier  String?
+  difficulty         String?
+  occurredAt         DateTime
+  createdAt          DateTime      @default(now())
+
+  // Duplicate prevention:
+  // - When the platform supplies an external id, [linkedAccountId, externalActivityId]
+  //   is unique (NULL ids never collide in PostgreSQL, so id-less events are unaffected).
+  // - When no external id exists, ingestion must check the
+  //   (linkedAccountId, platform, activityType, problemIdentifier, occurredAt)
+  //   combination in application code before inserting.
+  @@unique([linkedAccountId, externalActivityId])
+  @@index([userId, occurredAt])
+  @@index([linkedAccountId])
+}
+
+// Day-level submission counts from platform activity calendars (currently
+// LeetCode's submissionCalendar). One row per account/platform/calendar day:
+// the count is that day's verified submissions with NO problem attribution,
+// so these rows must never feed solved-problem metrics (those require
+// PROBLEM_SOLVED events with a problem identifier). Zero-activity days are
+// simply absent — a missing day means "no verified activity", and coverage
+// (which verified years/days were imported) is derived from stored rows,
+// never assumed.
+model DailyActivity {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkedAccountId String   @db.Uuid
+  linkedAccount   LinkedAccount @relation(fields: [linkedAccountId], references: [id], onDelete: Cascade)
+  platform        Platform
+  // UTC calendar day (midnight). LeetCode calendar days are UTC days; see
+  // the unified activity helper for the documented bucketing convention.
+  date            DateTime @db.Date
+  submissions     Int
+  // Provenance label, e.g. "LEETCODE_CALENDAR". Never secrets or raw payloads.
+  source          String   @default("LEETCODE_CALENDAR")
+  syncedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([linkedAccountId, platform, date])
+  @@index([userId, date])
+  @@index([linkedAccountId])
+}
+
+// Rated contest participations imported from platform APIs (Module 4).
+// Native platform ratings live here; the unified CodePulse Rating (later
+// module) is a separate calculation. Repeated syncs upsert by
+// [linkedAccountId, externalContestId], so no duplicates are stored.
+model ContestResult {
+  id                String        @id @default(uuid()) @db.Uuid
+  linkedAccountId   String        @db.Uuid
+  linkedAccount     LinkedAccount @relation(fields: [linkedAccountId], references: [id], onDelete: Cascade)
+  platform          Platform
+  externalContestId String
+  contestName       String
+  contestedAt       DateTime
+  ratingBefore      Int?
+  ratingChange      Int?
+  ratingAfter       Int?
+  rank              Int?
+  createdAt         DateTime      @default(now())
+
+  @@unique([linkedAccountId, externalContestId])
+  @@index([linkedAccountId, contestedAt])
+}
+
+model RatingSnapshot {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @db.Uuid
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Component scores use a 0-3000 scale (enforced in application code, Module 3+).
+  rating            Decimal  @db.Decimal(7, 2)
+  contestScore      Decimal  @db.Decimal(7, 2)
+  problemSolvingScore Decimal @db.Decimal(7, 2)
+  consistencyScore  Decimal  @db.Decimal(7, 2)
+  coverageMetadata  Json?
+  // CPR formula version that produced this row (Module 10, e.g. "1.0.0").
+  // Defaults so pre-existing rows stay valid; never backfilled or guessed.
+  formulaVersion    String   @default("1.0.0")
+  calculatedAt      DateTime @default(now())
+
+  @@index([userId, calculatedAt])
+}
+
+model Room {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  inviteCode  String   @unique
+  ownerId     String   @db.Uuid
+  owner       User     @relation("RoomOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members RoomMember[]
+  invitations RoomInvitation[]
+
+  @@index([ownerId])
+}
+
+// Shareable room invitations (Module 13). Only the SHA-256 hash of the
+// token is stored — the raw token exists solely in the creation response
+// and must never be logged or persisted. Expired, revoked, or exhausted
+// invitations grant nothing. Race-safe acceptance relies on the
+// @@unique([roomId, userId]) membership constraint plus a transaction.
+//
+// In-app invites address a registered user directly: invitedUserId scopes
+// the invitation to one recipient (pending lists, accept/decline by id)
+// without exposing any token. Link invites leave it null.
+model RoomInvitation {
+  id          String    @id @default(uuid()) @db.Uuid
+  roomId      String    @db.Uuid
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  createdById String    @db.Uuid
+  createdBy   User      @relation("InvitationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  invitedUserId String? @db.Uuid
+  invitedUser User?     @relation("InvitationRecipient", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  usedAt      DateTime?
+  maxUses     Int       @default(1)
+  useCount    Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([roomId])
+  @@index([invitedUserId])
+}
+
+model RoomMember {
+  id       String   @id @default(uuid()) @db.Uuid
+  roomId   String   @db.Uuid
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId   String   @db.Uuid
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     RoomRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+}

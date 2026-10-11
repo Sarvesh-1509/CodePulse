@@ -1,0 +1,44 @@
+# CodePulse local PostgreSQL (development only).
+#
+# The backend runs directly on Windows and reaches the database through
+# localhost on the mapped port. Credentials come from the root .env file,
+# which Docker Compose loads automatically for ${...} interpolation -
+# no real passwords are stored in this file.
+#
+# Start:   docker compose up -d            (from the repository root)
+# Stop:    docker compose stop
+# Restart: docker compose restart postgres
+# Logs:    docker compose logs postgres
+# Status:  docker compose ps
+# Shell:   docker compose exec postgres psql -U ${POSTGRES_USER:-codepulse} -d ${POSTGRES_DB:-codepulse} -h /var/run/postgresql
+# Remove:  docker compose down             (keeps the codepulse_pgdata volume)
+#          docker compose down -v          (DESTRUCTIVE: deletes all local data)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-codepulse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the root .env file (copy it from .env.example).}
+      POSTGRES_DB: ${POSTGRES_DB:-codepulse}
+    # Localhost-only binding: reachable from this machine, not the LAN.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - codepulse_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-codepulse} -d ${POSTGRES_DB:-codepulse}",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+# Named persistent volume: data survives `stop`, `restart`, and `down`.
+# It is only deleted by an explicit `docker compose down -v`.
+volumes:
+  codepulse_pgdata:

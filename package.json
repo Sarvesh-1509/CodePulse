@@ -1,0 +1,40 @@
+{
+  "name": "codepulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CodePulse - unified competitive programming analytics platform (Module 0 foundation)",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "packages/shared"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev:frontend": "npm run dev --workspace=@codepulse/frontend",
+    "dev:backend": "npm run dev --workspace=@codepulse/backend",
+    "dev": "concurrently -n frontend,backend -c blue,green \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "lint:frontend": "npm run lint --workspace=@codepulse/frontend",
+    "lint:backend": "npm run lint --workspace=@codepulse/backend",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck:frontend": "npm run typecheck --workspace=@codepulse/frontend",
+    "typecheck:backend": "npm run typecheck --workspace=@codepulse/backend",
+    "build": "npm run build --workspaces --if-present",
+    "build:frontend": "npm run build --workspace=@codepulse/frontend",
+    "build:backend": "npm run build --workspace=@codepulse/backend",
+    "db:generate": "npm run prisma:generate --workspace=@codepulse/backend",
+    "db:migrate": "npm run prisma:migrate --workspace=@codepulse/backend",
+    "db:deploy": "npm run prisma:deploy --workspace=@codepulse/backend",
+    "db:validate": "npm run prisma:validate --workspace=@codepulse/backend",
+    "db:check": "npm run db:check --workspace=@codepulse/backend",
+    "db:studio": "npm run studio --workspace=@codepulse/backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
