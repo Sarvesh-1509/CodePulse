@@ -76,6 +76,8 @@ model User {
   roomMemberships RoomMember[]
   invitationsCreated RoomInvitation[] @relation("InvitationCreator")
   invitationsReceived RoomInvitation[] @relation("InvitationRecipient")
+  contestsCreated Contest[]
+  contestAttempts ContestAttempt[]
 
   @@index([email])
   @@index([username])
@@ -224,6 +226,7 @@ model Room {
 
   members RoomMember[]
   invitations RoomInvitation[]
+  contests Contest[]
 
   @@index([ownerId])
 }
@@ -269,4 +272,115 @@ model RoomMember {
   @@unique([roomId, userId])
   @@index([roomId])
   @@index([userId])
+}
+
+// Personal contests (Module 15). Contests live inside an existing room and
+// reuse its membership for authorization — no separate room or user model is
+// introduced. Every attempt is tied to one contest and one user, and the
+// @@unique([contestId, userId]) constraint enforces one attempt per
+// participant. Deadline timestamps are stored server-side so timer expiry is
+// enforced by the backend, never by the frontend alone.
+
+enum ContestStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ContestDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  MIXED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
+model Contest {
+  id           String          @id @default(uuid()) @db.Uuid
+  roomId       String          @db.Uuid
+  room         Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdById  String          @db.Uuid
+  createdBy    User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  status       ContestStatus   @default(DRAFT)
+  difficulty   ContestDifficulty @default(MIXED)
+  // Selected topic tags, e.g. ["Arrays", "Dynamic Programming"]. Stored as
+  // JSON because the topic vocabulary is not a separate table.
+  topics       Json?
+  problemCount Int             @default(3)
+  durationMinutes Int         @default(90)
+  publishedAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  problems ContestProblem[]
+  attempts ContestAttempt[]
+
+  @@index([roomId])
+  @@index([createdById])
+  @@index([status])
+}
+
+model ContestProblem {
+  id          String   @id @default(uuid()) @db.Uuid
+  contestId   String   @db.Uuid
+  contest     Contest  @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  platform    Platform @default(LEETCODE)
+  problemId   String   // LeetCode problem slug
+  problemKey  String   // LEETCODE::<slug>, matches solved-event key format
+  title       String
+  url         String   // Public LeetCode problem URL
+  difficulty  String   // "Easy" | "Medium" | "Hard"
+  topics      Json     // Array of topic strings, e.g. ["Arrays", "Two Pointers"]
+  position    Int      // 1, 2 or 3 within the contest
+  attempts    ContestAttemptProblem[]
+
+  @@index([contestId])
+  @@unique([contestId, position])
+}
+
+model ContestAttempt {
+  id               String         @id @default(uuid()) @db.Uuid
+  contestId        String         @db.Uuid
+  contest          Contest        @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  userId           String         @db.Uuid
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status           AttemptStatus  @default(IN_PROGRESS)
+  startedAt        DateTime?
+  deadlineAt       DateTime?
+  completedAt      DateTime?
+  problemsCompleted Int           @default(0)
+  score            Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  problems ContestAttemptProblem[]
+
+  // One attempt per participant per contest.
+  @@unique([contestId, userId])
+  @@index([contestId])
+  @@index([userId])
+  @@index([status])
+}
+
+model ContestAttemptProblem {
+  id             String   @id @default(uuid()) @db.Uuid
+  attemptId      String   @db.Uuid
+  attempt        ContestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  contestProblemId String @db.Uuid
+  contestProblem ContestProblem @relation(fields: [contestProblemId], references: [id], onDelete: Cascade)
+  completed      Boolean  @default(false)
+  completedAt    DateTime?
+  // How completion was reported. "MANUAL" = self-reported by the participant
+  // (not independently verified by LeetCode). Reserved for future API-based
+  // verification: "LEETCODE_API".
+  completedVia   String   @default("MANUAL")
+
+  @@index([attemptId])
+  @@unique([attemptId, contestProblemId])
 }

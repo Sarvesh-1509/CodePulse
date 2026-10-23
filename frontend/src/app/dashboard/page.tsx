@@ -262,6 +262,9 @@ export default function DashboardPage() {
           <Button variant="outline" size="sm" asChild>
             <Link href="/leaderboards">Leaderboards</Link>
           </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/recommendations">Recommendations</Link>
+          </Button>
           <Button variant="outline" size="sm" onClick={onLogout}>
             Log out
           </Button>

@@ -21,6 +21,8 @@ import {
   type RoomDetailsDto,
   type RoomInvitationDto,
   type RoomMemberProgressDto,
+  type ContestSummaryDto,
+  listContests,
 } from "@/lib/api";
 import {
   LEADERBOARD_METRICS,
@@ -71,6 +73,10 @@ export default function RoomDetailsPage() {
   const [invitationsError, setInvitationsError] = useState<string | null>(null);
   const [freshInvite, setFreshInvite] = useState<CreatedInvitationDto | null>(null);
   const [inviteFormError, setInviteFormError] = useState<string | null>(null);
+
+  const [contests, setContests] = useState<ContestSummaryDto[] | null>(null);
+  const [contestsError, setContestsError] = useState<string | null>(null);
+  const [contestsLoading, setContestsLoading] = useState(false);
   const [expiresInHours, setExpiresInHours] = useState("168");
   const [maxUses, setMaxUses] = useState("1");
   const [inviteUsername, setInviteUsername] = useState("");
@@ -171,9 +177,25 @@ export default function RoomDetailsPage() {
     }
   }, [roomId, redirectIfUnauthorized, loadProgress, loadInvitations]);
 
+  const loadContests = useCallback(async () => {
+    setContestsError(null);
+    setContestsLoading(true);
+    try {
+      const data = await listContests({ roomId });
+      setContests(data.contests);
+    } catch (err) {
+      if (!redirectIfUnauthorized(err)) {
+        setContestsError(toMessage(err, "Failed to load contests."));
+      }
+    } finally {
+      setContestsLoading(false);
+    }
+  }, [roomId, redirectIfUnauthorized]);
+
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadContests();
+  }, [load, loadContests]);
 
   // Room board loads once membership is confirmed (room !== null) and
   // reloads on metric/page changes without refetching details. Activity
@@ -584,6 +606,66 @@ export default function RoomDetailsPage() {
                   </Button>
                 </div>
               </>
+            )}
+          </section>
+
+          <section aria-label="Contests" className="mt-4 rounded-lg border border-border bg-surface p-5">
+            <h2 className="text-xl font-semibold tracking-tight">Contests</h2>
+            <p className="mt-1 text-sm text-muted">
+              Create and run personal coding contests with room members.
+            </p>
+            <div className="mt-4 flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                onClick={() => router.push(`/contests/create?roomId=${encodeURIComponent(roomId)}`)}
+              >
+                Create contest
+              </Button>
+            </div>
+            {contests === null && contestsError && (
+              <div className="mt-4">
+                <p role="alert" className="text-sm text-red-300">{contestsError}</p>
+              </div>
+            )}
+            {contestsLoading && contests === null && (
+              <p className="mt-4 text-sm text-muted">Loading contests…</p>
+            )}
+            {contests !== null && contests.length === 0 && (
+              <p className="mt-4 text-sm text-muted">
+                No contests yet. Create one to get started.
+              </p>
+            )}
+            {contests !== null && contests.length > 0 && (
+              <ul className="mt-2 space-y-2">
+                {contests.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
+                  >
+                    <div>
+                      <span className="font-medium">{c.name}</span>
+                      <span className="ml-2 text-xs text-muted">
+                        {c.status === "DRAFT" ? "Draft" : "Published"} · {c.difficulty}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted">
+                        {c.participantCount} started · {c.completedCount} done
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        onClick={() => router.push(`/contests/${c.id}`)}
+                      >
+                        Open
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 

@@ -58,6 +58,12 @@ export default function Home() {
             Get started
           </Link>
           <Link
+            href="/recommendations"
+            className="rounded-md px-3 py-2 text-slate-300 hover:bg-white/5 hover:text-white"
+          >
+            Recommendations
+          </Link>
+          <Link
             href="/login"
             className="rounded-md px-3 py-2 text-slate-300 hover:bg-white/5 hover:text-white"
           >
@@ -67,9 +73,6 @@ export default function Home() {
       </header>
 
       <section className="flex flex-1 flex-col items-start justify-center py-16 sm:py-24">
-        <p className="mb-4 rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-cyan-300">
-          Module 0 — Foundation
-        </p>
         <h1 className="max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
           CodePulse
         </h1>
@@ -146,7 +149,7 @@ export default function Home() {
         </p>
         <ol className="mt-6 space-y-3">
           {[
-            "Create your CodePulse account (coming in Module 1).",
+            "Create your CodePulse account.",
             "Connect Codeforces, LeetCode, CodeChef, GeeksforGeeks and HackerRank.",
             "Invite friends to a room and climb the leaderboard.",
           ].map((step, index) => (
@@ -164,10 +167,7 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-border pt-6 text-sm text-muted">
-        <p>
-          CodePulse — Module 0 foundation. Frontend and backend health checks
-          only; no accounts or data yet.
-        </p>
+        <p>CodePulse — Your Coding Life, Unified.</p>
       </footer>
     </main>
   );

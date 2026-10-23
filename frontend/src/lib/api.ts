@@ -10,6 +10,14 @@ import type {
   CprDto,
   CprSnapshotDto,
   CreatedInvitationDto,
+  ContestAttemptDto,
+  ContestDto,
+  ContestDifficulty,
+  ContestLeaderboardEntryDto,
+  ContestResultsDto,
+  ContestStatus,
+  ContestSummaryDto,
+  CreateContestRequest,
   CreateRoomRequest,
   InvitationPreviewDto,
   LeaderboardEntryDto,
@@ -35,6 +43,7 @@ import type {
   UpdateProfileRequest,
   UpdateRoomRequest,
 } from "@codepulse/shared";
+import { CONTEST_TOPICS } from "@codepulse/shared";
 
 // Configurable backend base URL. NEXT_PUBLIC_* is inlined at build time and
 // is safe here: it holds no secret, only the public API origin.
@@ -47,7 +56,7 @@ export class ApiError extends Error {
 
   constructor(status: number, message: string, issues?: Record<string, string[] | undefined>) {
     super(message);
-    this.status = status;
+    this.status = status;                     
     this.issues = issues;
   }
 }
@@ -460,6 +469,86 @@ export async function getRoomLeaderboard(
   );
 }
 
+// --- Module 15: personal contests ---
+
+export interface ContestListQuery {
+  roomId?: string;
+}
+
+export async function listContests(query: ContestListQuery = {}): Promise<{ contests: ContestSummaryDto[] }> {
+  const params = new URLSearchParams();
+  if (query.roomId) params.set("roomId", query.roomId);
+  const text = params.toString();
+  return apiFetch<{ contests: ContestSummaryDto[] }>(`/api/contests${text === "" ? "" : `?${text}`}`);
+}
+
+export interface CreateContestBody {
+  roomId: string;
+  name: string;
+  description?: string | null;
+  difficulty: ContestDifficulty;
+  topics?: string[];
+}
+
+export async function createContest(
+  body: CreateContestBody
+): Promise<{ contest: ContestDto }> {
+  return post<{ contest: ContestDto }>("/api/contests", body);
+}
+
+export async function getContest(contestId: string): Promise<{ contest: ContestDto }> {
+  return apiFetch<{ contest: ContestDto }>(
+    `/api/contests/${encodeURIComponent(contestId)}`
+  );
+}
+
+export async function regenerateContest(
+  contestId: string
+): Promise<{ contest: ContestDto }> {
+  return post<{ contest: ContestDto }>(
+    `/api/contests/${encodeURIComponent(contestId)}/regenerate`
+  );
+}
+
+export async function publishContest(
+  contestId: string
+): Promise<{ contest: ContestDto }> {
+  return post<{ contest: ContestDto }>(
+    `/api/contests/${encodeURIComponent(contestId)}/publish`
+  );
+}
+
+export async function startContest(
+  contestId: string
+): Promise<{ attempt: ContestAttemptDto }> {
+  return post<{ attempt: ContestAttemptDto }>(
+    `/api/contests/${encodeURIComponent(contestId)}/start`
+  );
+}
+
+export async function getAttempt(contestId: string): Promise<{ attempt: ContestAttemptDto }> {
+  return apiFetch<{ attempt: ContestAttemptDto }>(
+    `/api/contests/${encodeURIComponent(contestId)}/attempt`
+  );
+}
+
+export async function completeProblem(
+  contestId: string,
+  problemId: string
+): Promise<{ attempt: ContestAttemptDto }> {
+  return post<{ attempt: ContestAttemptDto }>(
+    `/api/contests/${encodeURIComponent(contestId)}/attempt/problems/${encodeURIComponent(problemId)}/complete`
+  );
+}
+
+export async function getContestResults(
+  contestId: string
+): Promise<{ results: ContestResultsDto }> {
+  return apiFetch<{ results: ContestResultsDto }>(
+    `/api/contests/${encodeURIComponent(contestId)}/results`
+  );
+}
+
 export type { SafeUser };
 export type {
   ActivityCoverageDto,
@@ -467,10 +556,18 @@ export type {
   ActivityTotalsDto,
   AnalyticsRange,
   AnalyticsSummaryDto,
+  ContestAttemptDto,
+  ContestDto,
+  ContestDifficulty,
   ContestEntryDto,
+  ContestLeaderboardEntryDto,
+  ContestResultsDto,
+  ContestStatus,
+  ContestSummaryDto,
   CprDto,
   CprSnapshotDto,
   CreatedInvitationDto,
+  CreateContestRequest,
   CreateRoomRequest,
   InvitationPreviewDto,
   LeaderboardEntryDto,
@@ -490,5 +587,7 @@ export type {
   RoomMemberProgressDto,
   StreakDto,
   TrendBucketDto,
+  UpdateProfileRequest,
   UpdateRoomRequest,
 };
+export { CONTEST_TOPICS };

@@ -15,6 +15,7 @@ import { createActivityRouter } from "./modules/activity/routes";
 import { createAnalyticsRouter } from "./modules/analytics/routes";
 import { createRatingRouter } from "./modules/rating/routes";
 import { createRoomsRouter } from "./modules/rooms/routes";
+import { createContestsRouter } from "./modules/contests/routes";
 import { createLeaderboardsRouter } from "./modules/leaderboards/routes";
 import type { AdapterMap } from "./modules/platforms/service";
 import healthRouter from "./routes/health";
@@ -62,6 +63,7 @@ export function createApp(options?: CreateAppOptions) {
   app.use("/api/rating", requireSameOrigin, createRatingRouter());
   app.use("/api/analytics", requireSameOrigin, createAnalyticsRouter());
   app.use("/api/rooms", requireSameOrigin, createRoomsRouter());
+  app.use("/api/contests", requireSameOrigin, createContestsRouter());
   // Leaderboards: global board is public (opted-in rows only); the room
   // board enforces membership inside its router. Same mounting convention
   // as the public /api/platforms router.

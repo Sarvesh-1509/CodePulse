@@ -96,3 +96,27 @@ export type {
   LeaderboardEntryDto,
   LeaderboardPageDto,
 } from "./leaderboards";
+
+export {
+  CONTEST_PROBLEM_COUNT,
+  CONTEST_DURATION_MINUTES,
+  POINTS_PER_PROBLEM,
+  CONTEST_TOPICS,
+} from "./contests";
+
+export type {
+  ContestStatus,
+  ContestDifficulty,
+  AttemptStatus,
+  DIFFICULTY_LABELS,
+  ContestTopic,
+  ContestProblemDto,
+  ContestDto,
+  ContestSummaryDto,
+  ContestAttemptProblemDto,
+  ContestAttemptDto,
+  ContestLeaderboardEntryDto,
+  ContestResultsDto,
+  CreateContestRequest,
+  ContestSelectionPreview,
+} from "./contests";
