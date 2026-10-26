@@ -1,6 +1,6 @@
 # CodePulse — Your Coding Life, Unified.
 
-CodePulse is a unified competitive programming analytics platform. Connect coding profiles from Codeforces, LeetCode, CodeChef, GeeksforGeeks and HackerRank, view statistics in one dashboard, track combined streaks, compare contest ratings, and compete with friends in private rooms.
+CodePulse is a unified competitive programming analytics platform. Connect coding profiles from Codeforces, LeetCode, CodeChef, GeeksforGeeks and HackerRank, view statistics in one dashboard, explore verified personal contributions, track combined streaks, compare contest ratings, and compete with friends in private rooms.
 
 > **Status:** Modules 0–14 are implemented and tested: PostgreSQL + Prisma, cookie-based JWT auth, profile management, all five platform integrations, unified activity and streaks, CodePulse Rating, dashboard, historical analytics, private rooms with invitations, and global/room leaderboards. Real-time leaderboard updates (Socket.IO) are planned but not installed.
 
@@ -136,7 +136,7 @@ Invoke-RestMethod http://localhost:5000/api/health/db
 
 ## Local URLs
 
-- Frontend: http://localhost:3000 (register: `/register`, login: `/login`, dashboard: `/dashboard`)
+- Frontend: http://localhost:3000 (register: `/register`, login: `/login`, dashboard: `/dashboard`, contributions: `/contributions`, analytics: `/analytics`)
 - Backend health: http://localhost:5000/api/health
 - Backend DB health: http://localhost:5000/api/health/db
 
@@ -276,6 +276,7 @@ npm run test --workspace=@codepulse/backend
 - [x] Dashboard: CPR card, streak card, 12-month heatmap, Recharts analytics, recent feed, platform overview, profile editing — all from live APIs with loading/error/empty states
 - [x] Shared package: `SafeUser`, auth + platform + activity + rating + analytics + rooms + leaderboard DTO contracts
 - [x] Historical analytics: `/analytics` page (range presets + custom ranges, trends, platform breakdown, period comparison, CPR/native rating history, contest history) backed by authenticated `/api/analytics/*` endpoints over verified persisted data, with honest empty/partial-history states
+- [x] Personal contributions: `/contributions` page (30-day, 90-day, and 1-year verified activity heatmaps, selected-period streaks, previous-period comparison, platform contribution breakdown, deterministic insights, coverage notes, and recent activity) composed from the authenticated activity and analytics APIs
 - [x] Private rooms: `/rooms`, `/rooms/[id]`, `/invite/[token]` pages; ownership transfer and deletion rules; SHA-256-hashed single-/multi-use invitations with expiry and revocation; member progress views
 - [x] Leaderboards: `/leaderboards` page plus room boards; CPR/activity/solved/streak metrics; competition ranking with deterministic tiebreaks; pagination; `showOnLeaderboard` opt-in (dashboard checkbox, hidden by default); room membership enforcement
 - [x] 223 backend tests passing across 19 files (live upstream tests skip without `LIVE_API=1`) + 72 frontend tests + 2 shared tests

@@ -64,7 +64,7 @@
 - **FR-8.4** Global default hidden, opt-in via dashboard checkbox — **Verified** `dashboard/page.tsx:373-390`, `schema.prisma:67`.
 
 ### FR-9 Frontend Pages
-- **FR-9.1** `/` welcome + features; `/register`, `/login`, `/dashboard` (CPR, streak, 12-month heatmap, Recharts, recent, platforms, profile edit + logout), `/analytics` (presets + custom, trends, breakdown, compare, CPR/native, contests), `/rooms`, `/rooms/[id]`, `/invite/[token]`, `/leaderboards` (+room boards) — all with loading/error/empty states, 401 → `/login` — **Verified** `frontend/src/app/*/page.tsx`, `dashboard/page.tsx:77-86,173-181`.
+- **FR-9.1** `/` welcome + features; `/register`, `/login`, `/dashboard` (CPR, streak, 12-month heatmap, Recharts, recent, platforms, profile edit + logout), `/contributions` (selected-period verified activity heatmap, streak summary, comparison, platform breakdown, deterministic insights, coverage, recent feed), `/analytics` (presets + custom, trends, breakdown, compare, CPR/native, contests), `/rooms`, `/rooms/[id]`, `/invite/[token]`, `/leaderboards` (+room boards) — all with loading/error/empty states, 401 → `/login` — **Verified** `frontend/src/app/*/page.tsx`, `dashboard/page.tsx:77-86,173-181`.
 - **FR-9.2** Central client `lib/api.ts` with `credentials:include`, `ApiError{status,message,issues}`, `NEXT_PUBLIC_API_URL` — **Verified** `api.ts:41-80`.
 
 ### FR-10 Health

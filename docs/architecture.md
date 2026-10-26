@@ -50,6 +50,7 @@ codepulse/
       recent-activity.tsx, analytics-charts.tsx # dashboard sections (props-driven)
     src/lib/api.ts        # authenticated fetch client (cookies included)
     src/lib/dashboard.ts  # pure heatmap/formatting helpers (unit-tested)
+    src/lib/contributions.ts # contribution insights and coverage helpers (unit-tested)
   docs/
     cpr-formula.md        # CPR v1.0.0 specification (weights, ceilings, policy)
 ```
@@ -78,7 +79,7 @@ curl    -> Express (5000) /api/health    -> JSON { success, message, timestamp }
 curl    -> Express (5000) /api/health/db -> JSON { success, data: { database, latencyMs } }
 ```
 
-All third-party traffic stays server-side: the browser never calls codeforces.com or leetcode.com directly. Adapters fetch first, then persist inside short transactions; failed syncs keep cached data and record a sanitized `lastSyncError`. Dashboard reads (streaks, CPR) aggregate already-stored rows — syncs never block page loads.
+All third-party traffic stays server-side: the browser never calls codeforces.com or leetcode.com directly. Adapters fetch first, then persist inside short transactions; failed syncs keep cached data and record a sanitized `lastSyncError`. Dashboard, contributions, and analytics reads aggregate already-stored rows — syncs never block page loads. The contributions page is a focused view over the existing activity and analytics contracts; it does not create a second contribution data model.
 
 CORS is restricted to `FRONTEND_URL` (default `http://localhost:3000`). Unknown routes return JSON 404 via `notFoundHandler`; thrown errors funnel through `errorHandler`, which hides stack traces in production and never echoes secrets.
 

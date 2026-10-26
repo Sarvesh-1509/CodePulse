@@ -254,6 +254,9 @@ export default function DashboardPage() {
         </Link>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" asChild>
+            <Link href="/contributions">Contributions</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/analytics">Analytics</Link>
           </Button>
           <Button variant="outline" size="sm" asChild>

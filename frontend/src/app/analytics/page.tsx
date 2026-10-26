@@ -310,6 +310,9 @@ export default function AnalyticsPage() {
         </Link>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" asChild>
+            <Link href="/contributions">Contributions</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard">Dashboard</Link>
           </Button>
           <Button variant="outline" size="sm" asChild>

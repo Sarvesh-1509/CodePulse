@@ -17,6 +17,7 @@ interface ActivityHeatmapProps {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  rangeLabel?: string;
 }
 
 const LEVEL_CLASSES: Record<number, string> = {
@@ -40,6 +41,7 @@ export default function ActivityHeatmap({
   loading,
   error,
   onRetry,
+  rangeLabel = "last 12 months",
 }: ActivityHeatmapProps) {
   const weeks = useMemo(() => buildHeatmapWeeks(days ?? []), [days]);
   const unavailable = coverage !== null && !coverage.complete;
@@ -48,7 +50,7 @@ export default function ActivityHeatmap({
     <section aria-label="Activity heatmap" className="rounded-lg border border-border bg-surface p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight">Activity</h2>
-        <span className="font-mono text-xs text-muted">last 12 months</span>
+        <span className="font-mono text-xs text-muted">{rangeLabel}</span>
       </div>
 
       {loading && <p className="mt-4 text-sm text-muted">Loading activity…</p>}
